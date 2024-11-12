@@ -1,0 +1,25 @@
+---                                                                                                                                                                                                                   
+# CHANGES DESCRIPTION:
+# Add HERE a description of the changes done to your tokenizer
+# - What changes have been done?
+# - Why?
+ 
+ 
+# 1- REQUIRED ARGUMENTS
+source_model: ''  # The source model to be changed.
+
+reserved_token_pattern: ''  # The pattern of the tokens to be replaced (reserved tokens).
+
+original_config: null  # The config file of the original tokenizer (if it was trained by BSC). If it does not exist, leave null.
+
+# The available piece types are:
+# - `ID=1`: NORMAL
+# - `ID=2`: UNKNOWN
+# - `ID=3`: CONTROL -> _NOTE: this is different to UNUSED_
+# - `ID=4`: USER_DEFINED
+# - `ID=5`: UNUSED
+# - `ID=6`: BYTE
+tokens_to_add:  # Dictionary token-to-type. Check previous lines for available types. Tokens that already exist in the vocabulary will only have their type changed.
+  'INSERT TOKEN HERE': INSERT TOKEN TYPE HERE
+  '': ...
+

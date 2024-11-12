@@ -1,0 +1,5 @@
+*
+!.gitignore
+!example.yml
+!template.yml
+!salamandra_instructed.yml

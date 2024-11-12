@@ -1,0 +1,24 @@
+---                                                                                                                                                                                                                   
+# CHANGES DESCRIPTION:
+# This is just an example in which we add 3 different tokens with different types. 
+ 
+
+# 1- REQUIRED ARGUMENTS
+source_model: 'tokenizers/example/example.model'  # The source model to be changed.
+
+reserved_token_pattern: '^<\|reserved_token_[0-9]+\|>$'  # The pattern of the tokens to be replaced (reserved tokens).
+
+original_config: 'tokenizers/example/config.yml'  # The config file of the original tokenizer (if it was trained by BSC). If it does not exist, leave null.
+
+# The available piece types are:
+# - `ID=1`: NORMAL
+# - `ID=2`: UNKNOWN
+# - `ID=3`: CONTROL -> _NOTE: this is different to UNUSED_
+# - `ID=4`: USER_DEFINED
+# - `ID=5`: UNUSED
+# - `ID=6`: BYTE
+tokens_to_add:  # Dictionary token-to-type. Check previous lines for available types. Tokens that already exist in the vocabulary will only have their type changed.
+  '<user_defined_token>': 4
+  '<control_token>': 3
+  '<unused_token>': 5
+

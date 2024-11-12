@@ -1,0 +1,23 @@
+---                                                                                                                                                                                                                   
+# CHANGES DESCRIPTION:
+# No path example provided for public. 
+ 
+
+# 1- REQUIRED ARGUMENTS
+source_model: 'path_to.model'  # The source model to be changed.
+
+reserved_token_pattern: '^<\|reserved_token_[0-9]+\|>$'  # The pattern of the tokens to be replaced (reserved tokens).
+
+original_config: 'tokenizers/multilingual_new/alpha_experiment_2024-04-09/alpha_0/config.yml'  # The config file of the original tokenizer (if it was trained by BSC). If it does not exist, leave null.
+
+# The available piece types are:
+# - `ID=1`: NORMAL
+# - `ID=2`: UNKNOWN
+# - `ID=3`: CONTROL -> _NOTE: this is different to UNUSED_
+# - `ID=4`: USER_DEFINED
+# - `ID=5`: UNUSED
+# - `ID=6`: BYTE
+tokens_to_add:  # Dictionary token-to-type. Check previous lines for available types.
+  '<|im_start|>': 4
+  '<|im_end|>': 4
+

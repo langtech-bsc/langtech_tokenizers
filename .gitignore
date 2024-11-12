@@ -1,0 +1,9 @@
+venv*
+/use_env.sh
+__pycache__
+.idea
+data
+logs
+old
+plots
+sh

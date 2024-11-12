@@ -1,0 +1,63 @@
+---
+# TOKENIZER DESCRIPTION:
+# Add HERE a description of your tokenizer
+# - experiment in which it will be used.
+# - model which will use this.
+# - design choices.
+
+
+# 1- REQUIRED ARGUMENTS
+vocab_size : HERE  # Tokenizer vocabulary size.
+
+model_type: HERE  # Tokenizer type to be trained. Options are: bpe (Only one tested), unigram, char and word.
+
+# choose one, comment the other.
+input : HERE  # Text file to use as training data. 
+# sentence_iterator : HERE  # TODO: NOT IMPLEMENTED
+
+
+# 2- OPTIONAL ARGUMENTS
+user_defined_symbols :  # List of special tokens to manually add. 
+  - HERE
+  - HERE
+
+control_symbols :  # Similar to "user_defined_symbols" the only difference being the fact that this tokens are skipped during tokenization. They can be "activated later".
+    # More info about the difference between "user_defined_symbols" and "control_symbols" can be found here: 
+    # https://github.com/google/sentencepiece/blob/2b8772ae8f4efce787c94fbb38310a07b4222455/doc/special_symbols.md
+  - HERE
+  - HERE
+
+allow_whitespace_only_pieces : HERE  # Whether to allow tokens that are sequences of whitespaces in the vocabulary. CAREFUL: this only allows them, they need to be added.
+
+max_sentence_length : HERE  # DO NOT CHANGE UNLESS YOU KNOW WHAT YOU ARE DOING (I DO NOT)! Maximum bytes allowed per data line.
+
+byte_fallback : HERE  # Whether to add bytes to the vocabulary. This ensures that any sequence can be tokenized.
+
+split_digits : HERE  # Whether to separate single digits from other characters. 
+    # For example, if this is set to True, the following sequences would never be added to the vocabulary as single tokens: "day23", "2-headed", "2023"...
+
+remove_extra_whitespaces : HERE  # Normalise the text so that all sequence of whitespaces is replaced by a single whitespace.
+
+normalization_rule_tsv : HERE  # tsv file defining the normalization rule to be used by the tokenizer.
+
+pad_id : HERE  # Position of pad token. -1 means no pad token.
+
+# custom arguments (used to set up other arguments in spm)
+whitespaces_sequences : HERE  # Integer value. Sequences of whitespaces up to this integer length will be added as "user_defined_symbols".
+
+tabulations_sequences : HERE  # Integer value. Sequences of tabulations up to this integer length will be added as "user_defined_symbols".
+
+newlines_sequences : HERE  # Integer value. Sequences of newlines up to this integer length will be added as "user_defined_symbols".
+
+n_reserved_tokens : HERE  # The number of reserved tokens to be added length will be added as "control_symbols". 
+    # They can be added as "user_defined_symbols" with "reserved_tokens_as_user_defined_symbols".
+
+reserved_tokens_format : HERE  # Naming convention that will be used for the reserved tokens. 
+    # Something like "<|reserved_token_{{REPLACE}}|>" where "{{REPLACE}}" will be replaced by the reserved token number.
+
+reserved_tokens_as_user_defined_symbols : HERE  # Whether to set reserved tokens as "user_defined_symbols" instead of "control_symbols".
+
+
+# MORE INFO
+# You can check these and other parameters supported by SentencePiece here: https://github.com/google/sentencepiece/blob/022f8c3fed4d2feb4e4c670949cf01cef477dcc4/doc/options.md
+# You can add any of them to the list and they should be correctly handled.
