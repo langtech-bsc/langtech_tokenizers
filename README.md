@@ -21,7 +21,7 @@ You can also check the given example `training_configs/example.yml`.
 This will result in `<YOUR_TRAINING_CONFIG>`.
 Notice that Salamandra tokenizer training config is also provided `training_configs/salamandra.yml`.
 
-Choose a name `<NAME>` for your tokenizer and the destination folder `<OUTPUT_DIRECTORY>` (By default: `./tokenizers`).
+Choose a name `<NAME>` for your tokenizer and the destination folder `<OUTPUT_DIRECTORY>`.
 Finally, you can run: `python train_tokenizer.py --output_directory <OUTPUT_DIRECTORY> --config_file <YOUR_TRAINING_CONFIG> --name <NAME>`.
 
 ## Compute tokenizer fertility

@@ -14,8 +14,8 @@ def parse_args():
     parser.add_argument(
         "--output_directory",
         type=str,
-        default="./tokenizers",
-        help="Path to the output directory. Default is './tokenizers'. ",
+        required=True
+        help="Path to the output directory. ",
     )
     parser.add_argument(
         "--config_file",

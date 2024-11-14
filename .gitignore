@@ -2,8 +2,11 @@ venv*
 /use_env.sh
 __pycache__
 .idea
+cache
 data
+fertility_results
 logs
 old
 plots
 sh
+tokenizers
