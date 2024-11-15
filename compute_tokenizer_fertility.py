@@ -1,4 +1,4 @@
-from transformers import GPT2TokenizerFast
+from transformers import AutoTokenizer
 import os
 from tqdm import tqdm
 from datasets import load_dataset
@@ -59,7 +59,7 @@ def main():
         return bytes_
 
     print("Preparing dataset ...")
-    dataset = load_dataset(args.dataset_path, split=args.dataset_split)
+    dataset = load_dataset(args.dataset_path, split=args.dataset_split, trust_remote_code=True)
 
     print(f"DATASET: {dataset}")
     total_words = 0
@@ -70,7 +70,7 @@ def main():
 
     print("Loading tokenizer ...")
     if args.tokenizer_framework == "huggingface":
-        tokenizer = GPT2TokenizerFast.from_pretrained(args.tokenizer_path)
+        tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_path)
         
         def tokenization(example_):
             return tokenizer(example_["text"])
