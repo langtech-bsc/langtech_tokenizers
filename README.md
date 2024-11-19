@@ -22,7 +22,10 @@ This will result in `<YOUR_TRAINING_CONFIG>`.
 Notice that Salamandra tokenizer training config is also provided `training_configs/salamandra.yml`.
 
 Choose a name `<NAME>` for your tokenizer and the destination folder `<OUTPUT_DIRECTORY>`.
-Finally, you can run: `python train_tokenizer.py --output_directory <OUTPUT_DIRECTORY> --config_file <YOUR_TRAINING_CONFIG> --name <NAME>`.
+Finally, you can run: 
+```bash
+python train_tokenizer.py --output_directory <OUTPUT_DIRECTORY> --config_file <YOUR_TRAINING_CONFIG> --name <NAME>
+```
 
 ## Compute tokenizer fertility
 By fertility, we mean the two following metrics:
@@ -31,7 +34,10 @@ By fertility, we mean the two following metrics:
 Where words are splitted by using the following pattern: `[ ]?[\p{L}]+|[ ]?[^\p{L}\p{N} \t\n]+|[ ]+|[\t]+|[\n]+|\d{1}`.
 
 In order to compute both `tpw` and `tpb` for a given tokenizer (with path `<TOKENIZER>`) in a given dataset (i.e. a HF dataloader with path `<DATASET>`) you can use the script `compute_tokenizer_fertility.py`.
-Choose an output file (`.csv`) `<OUTPUT_FILE>` and run: `python --dataset_path <DATASET> --tokenizer_path <TOKENIZER> --output_file <OUTPUT_FILE>`.
+Choose an output file (`.csv`) `<OUTPUT_FILE>` and run: 
+```bash
+python --dataset_path <DATASET> --tokenizer_path <TOKENIZER> --output_file <OUTPUT_FILE>`
+```
 
 Notice: you can choose the dataloader split with `--dataset_split <SPLIT>`. By default, a SentencePiece tokenizer is expected, but this code can run with HF tokenizers with `--tokenizer_framework huggingface`.
 
@@ -44,7 +50,10 @@ You can also check the given example `changes_configs/example.yml`.
 This will result in `<YOUR_CHANGES_CONFIG>`.
 Notice that Salamandra-instruct tokenizer changes config is also provided `changes_configs/salamandra_instructed.yml`.
 
-Choose the destination folder `<OUTPUT_DIRECTORY>` and run: `python change_and_activate_reserved_tokens.py --output_directory <OUTPUT_DIRECTORY> --config_file <YOUR_CHANGES_CONFIG>`.
+Choose the destination folder `<OUTPUT_DIRECTORY>` and run: 
+```bash
+python change_and_activate_reserved_tokens.py --output_directory <OUTPUT_DIRECTORY> --config_file <YOUR_CHANGES_CONFIG>
+```
 
 ## Vocabulary Adaptation
 Here we provide a code that allows to adapt a model to a new tokenizer using different strategies.
@@ -60,7 +69,12 @@ Choose the desired strategy `<STRATEGY>` (usually `matching` works good enough i
 the source model `<BIG_SOURCE_MODEL>`, the model type `<MODEL_TYPE>` (either "encoder" or "decoder"), the target tokenizer `<TARGET_TOKENIZER>`, 
 the output directory `<OUTPUT_DIRECTORY>` and the name `<NAME>` of the new model (this last one is optional, 
 and if not provided will be set to `new_<BIG_SOURCE_MODEL_NAME>`).
-Then you can run: `python vocabulary_adaptation.py --big_source_model_directory <BIG_SOURCE_MODEL> --target_tokenizer <TARGET_TOKENIZER> --output_directory <OUTPUT_DIRECTORY> --name <NAME>`.
+
+Then you can run: 
+```bash
+python vocabulary_adaptation.py --big_source_model_directory <BIG_SOURCE_MODEL> --target_tokenizer <TARGET_TOKENIZER> --output_directory <OUTPUT_DIRECTORY> --name <NAME>
+```
+
 Depending on the strategy you may need to set `--small_source_model_directory` and/or `--small_target_model_directory`.
 Run `python vocabulary_adaptation.py --help` for more info about these and other arguments.
 
