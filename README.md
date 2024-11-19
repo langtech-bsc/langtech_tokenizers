@@ -46,3 +46,23 @@ Notice that Salamandra-instruct tokenizer changes config is also provided `chang
 
 Choose the destination folder `<OUTPUT_DIRECTORY>` and run: `python change_and_activate_reserved_tokens.py --output_directory <OUTPUT_DIRECTORY> --config_file <YOUR_CHANGES_CONFIG>`.
 
+## Vocabulary Adaptation
+Here we provide a code that allows to adapt a model to a new tokenizer using different strategies.
+The script is `vocabulary_adaptation.py` and lets you choose between the following strategies:
+- `matching` (default) ([Transfer Learning in Multilingual Neural Machine Translation with Dynamic Vocabulary](https://aclanthology.org/2018.iwslt-1.8/))
+- `improved` ([Efficient Language Model Training through Cross-Lingual and Progressive Transfer Learning](https://arxiv.org/abs/2301.09626))
+- `lstsq` ([As Good as New. How to Successfully Recycle English GPT-2 to Make Models for Other Languages](https://aclanthology.org/2021.findings-acl.74/))
+- `orthogonal_procrustes` ([As Good as New. How to Successfully Recycle English GPT-2 to Make Models for Other Languages](https://aclanthology.org/2021.findings-acl.74/))
+- `knn` (NOT IMPLEMENTED) ([As Good as New. How to Successfully Recycle English GPT-2 to Make Models for Other Languages](https://aclanthology.org/2021.findings-acl.74/))
+- `wechsel` (NOT IMPLEMENTED) ([WECHSEL: Effective initialization of subword embeddings for cross-lingual transfer of monolingual language models](https://aclanthology.org/2022.naacl-main.293.pdf))
+
+Choose the desired strategy `<STRATEGY>` (usually `matching` works good enough if the overlap between source and target tokenizer isn't trivial),
+the source model `<BIG_SOURCE_MODEL>`, the model type `<MODEL_TYPE>` (either "encoder" or "decoder"), the target tokenizer `<TARGET_TOKENIZER>`, 
+the output directory `<OUTPUT_DIRECTORY>` and the name `<NAME>` of the new model (this last one is optional, 
+and if not provided will be set to `new_<BIG_SOURCE_MODEL_NAME>`).
+Then you can run: `python vocabulary_adaptation.py --big_source_model_directory <BIG_SOURCE_MODEL> --target_tokenizer <TARGET_TOKENIZER> --output_directory <OUTPUT_DIRECTORY> --name <NAME>`.
+Depending on the strategy you may need to set `--small_source_model_directory` and/or `--small_target_model_directory`.
+Run `python vocabulary_adaptation.py --help` for more info about these and other arguments.
+
+*NOTE: This code assumes that encoder models have bias in the unembedding layer, while decoders do not.
+Select "encoder" or "decoder" as model type acccordingly.*
