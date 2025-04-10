@@ -60,7 +60,10 @@ def main():
             piece.type = config["tokens_to_add"][piece.piece]
     
     pattern = re.compile(config["reserved_token_pattern"])
+    activated_tokens_keys = []  # only tokens that will be set as additional_special_tokens
     for i, (token_to_add, type_) in enumerate(config["tokens_to_add"].items()):
+        if type_ != 5:  # 5 refers to UNUSED, i.e. ignored
+            activated_tokens_keys.append(token_to_add)
         # if already in tokenizer, only change type
         if token_to_add in tokenizer_vocab:
             continue
@@ -78,10 +81,10 @@ def main():
     check_folder_and_solve(args.output_directory, force=args.force_overwrite)
     path_to_file = os.path.join(args.output_directory, "tokenizer.model")
     with open(path_to_file, 'wb') as o_f:
-        o_f.write(source_model_proto.SerializeToString())  # This will be replaced afterwards by the last tokenizer.json
+        o_f.write(source_model_proto.SerializeToString())  # This will be replaced afterwards by the last tokenizer.model
     
     new = TokenizerClass.from_pretrained(path_to_file)
-    new.add_special_tokens({"additional_special_tokens": list(config["tokens_to_add"].keys())})
+    new.add_special_tokens({"additional_special_tokens": activated_tokens_keys})
     new.save_pretrained(args.output_directory)
     # copy original config
     if config["original_config"]:

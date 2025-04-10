@@ -51,7 +51,7 @@ def main():
 
     def n_words(sentence):
         # words = sentence.split()  DEPRECATED
-        words = regex.findall(r"[ ]?[\p{L}]+|[ ]?[^\p{L}\p{N} \t\n]+|[ ]+|[\t]+|[\n]+|\d{1}", sentence) 
+        words = regex.findall(r"[ ]?[\p{L}]+|[ ]?[^\p{L}\p{N} \t\n]+|[ ]+|[\t]+|[\n]+|\d{1}", sentence)  # TODO: change regex to r"[ ]?[\p{L}]+|[ ]?[^\p{L}\p{N} \t\n]+|[ ]+|[\t]+|[\n]+|\d+". This no longer splits sequences of digits into singular digits. Also, ChatGPT suggested this to separate other scripts: [ ]?[\p{Latin}]+|[ ]?[\p{Greek}]+|[ ]?[\p{Cyrillic}]+|[ ]?[\p{Georgian}]+|[ ]?[^\p{L}\p{N}\p{Space}]+|[ ]+|[\t]+|[\n]+|\d+
         return len(words)
     
     def n_bytes(sentence):

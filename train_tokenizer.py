@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument(
         "--output_directory",
         type=str,
-        required=True
+        required=True,
         help="Path to the output directory. ",
     )
     parser.add_argument(
@@ -71,7 +71,10 @@ def main():
     tabulations_tokens = ["\t" * i for i in range(2, config["tabulations_sequences"] + 1)]
     newlines_tokens = ["\n" * i for i in range(2, config["newlines_sequences"] + 1)]
     reserved_tokens = [config["reserved_tokens_format"].replace("{{REPLACE}}", str(i)) for i in range(1, config["n_reserved_tokens"] + 1)]
-    user_defined_symbols = user_defined_symbols + whitespaces_tokens + tabulations_tokens + newlines_tokens
+    digit_tokens = []
+    for sequence_size in config["digit_sequences_sizes"]:
+        digit_tokens += [str(i).zfill(sequence_size) for i in range(10**sequence_size)]
+    user_defined_symbols = user_defined_symbols + whitespaces_tokens + tabulations_tokens + newlines_tokens + digit_tokens
     if config["reserved_tokens_as_user_defined_symbols"]:
         user_defined_symbols = user_defined_symbols + reserved_tokens
     else:
@@ -82,7 +85,7 @@ def main():
     config["user_defined_symbols"] = user_defined_symbols
     config["control_symbols"] = control_symbols
     config["model_prefix"] = model_prefix
-    UNWANTED_ARGUMENTS = ("whitespaces_sequences", "tabulations_sequences", "newlines_sequences", "n_reserved_tokens", "reserved_tokens_format", "reserved_tokens_as_user_defined_symbols")
+    UNWANTED_ARGUMENTS = ("whitespaces_sequences", "tabulations_sequences", "newlines_sequences", "n_reserved_tokens", "reserved_tokens_format", "reserved_tokens_as_user_defined_symbols", "digit_sequences_sizes")
     for argument in UNWANTED_ARGUMENTS:
         del config[argument]
 
