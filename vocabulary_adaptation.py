@@ -36,6 +36,12 @@ def parse_args():
         help="Whether the model is an 'encoder' or 'decoder'."
     )
     parser.add_argument(
+        "--untied_embeddings",
+        default="False",
+        action="store_true",
+        help="Whether the embeddings and unembeddings of the model are tied."
+    )
+    parser.add_argument(
         "--source_tokenizer",
         type=str,
         default=None,
@@ -136,26 +142,40 @@ class TransformersTokenizer(Transform):
         return TitledStr(self.tokenizer.decode(x.cpu().numpy()))
 
 
-def load_model_embeddings(model_path, model_type, return_model=False):
+def load_model_embeddings(model_path, model_type, return_unembeddings=False, return_model=False):
+    model_weights_input = None
+    model_weights_output = None
+    
     # if they were already saved
     embedding_path = os.path.join(model_path, "embeddings.pt")
+    unembedding_path = os.path.join(model_path, "unembeddings.pt")
     if not return_model and os.path.exists(embedding_path):
-        return torch.load(embedding_path)
+        model_weights_input = torch.load(embedding_path)
+        if return_unembeddings and os.path.exists(unembedding_path):
+            model_weights_output = torch.load(unembedding_path)
 
-    # not pre-saved (or full model is required)
-    if model_type == 'encoder':
-        model = AutoModelForMaskedLM.from_pretrained(model_path, trust_remote_code=True)  # here we save the big source model and we will apply to the same modifications to make it the big target model
-    elif model_type == 'decoder':
-        model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
-    else:
-        raise ValueError(f"Invalid model type {model_type}. Options: 'encoder' or 'decoder'.")
-    model_weights_input = model.get_input_embeddings().weight.clone().detach()
-    if model_type == 'encoder':  # in encoders, unembeddings have bias
-        bias = model.get_output_embeddings().bias
-        model_weights_input = torch.cat((model_weights_input, bias[:, None]),1)
+    # not pre-saved or full model is required
+    need2load = (model_weights_input is None) or (model_weights_output is None and return_unembeddings) or return_model
+    if need2load:
+        if model_type == 'encoder':
+            model = AutoModelForMaskedLM.from_pretrained(model_path, trust_remote_code=True)  # here we save the big source model and we will apply to the same modifications to make it the big target model
+        elif model_type == 'decoder':
+            model = AutoModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
+        else:
+            raise ValueError(f"Invalid model type {model_type}. Options: 'encoder' or 'decoder'.")
+        
+        model_weights_input = model.get_input_embeddings().weight.clone().detach()
+        if return_unembeddings:
+            model_weights_output = model.get_output_embeddings().weight.clone().detach()
+
+        if model_type == 'encoder':  # in encoders, unembeddings have bias
+            bias = model.get_output_embeddings().bias
+            model_weights_input = torch.cat((model_weights_input, bias[:, None]),1)  # attach at the end
+    
+    # return
     if return_model:
-        return model_weights_input, model
-    return model_weights_input
+        return model_weights_input, model_weights_output, model
+    return model_weights_input, model_weights_output
 
 
 def ort_proc_transformation(small_source_embeddings, big_source_embeddings, small_target_embeddings):
@@ -177,15 +197,24 @@ def get_tensor_index(tensor_, value) -> int:
     int((tensor_ == value).nonzero(as_tuple=False).squeeze())
 
 
-def save_embeddings(embeddings_tensor, model_path, force=False):
+def save_embeddings(embeddings_tensor, model_path, unembedding_tensor=None, force=False):
     print("\tSaving embeddings ...")
     destination_path = os.path.join(model_path, "embeddings.pt")
     if not force and os.path.exists(destination_path):
         print(f"\tEmbeddings of model {model_path} are already saved. Skipping. "
               f"If you want to overwrite them, use the --force_overwrite option.")
-        return
-    print("\tEmbeddings saved!")
-    torch.save(embeddings_tensor, destination_path)
+    else:
+        torch.save(embeddings_tensor, destination_path)
+        print("\tEmbeddings saved!")
+    if unembedding_tensor is not None:
+        print("\tSaving unembeddings ...")
+        destination_path = os.path.join(model_path, "unembeddings.pt")
+        if not force and os.path.exists(destination_path):
+            print(f"\tUnembeddings of model {model_path} are already saved. Skipping. "
+                  f"If you want to overwrite them, use the --force_overwrite option.")
+        else:
+            torch.save(unembeddings_tensor, destination_path)
+            print("\tUnembeddings saved!")
 
 
 def main(args):
@@ -193,6 +222,9 @@ def main(args):
     name = args.name if args.name else f"new_{os.path.basename(args.big_source_model_directory)}_{args.strategy}"
     new_model_directory = os.path.join(args.output_directory, name)
     check_folder_and_solve(new_model_directory, force=args.force_overwrite)
+    assert not args.untied_embeddings or (args.strategy == "matching" and args.model_type == "decoder"), \
+        ("NOT IMPLEMENTED: untied_embeddings currently only works with `matching` strategy and `decode` model type. "
+        "If you need it, talk with Seve. ")
     
     # LOAD AND INITIALIZE TOKENIZERS
     # load tokenizers
@@ -214,11 +246,11 @@ def main(args):
 
     # check tokenizers' config match
     if target_tokenizer.pad_token != source_tokenizer.pad_token:
-        Warning_message(f"PAD token is different in the two tokenizers:\n - Source: {source_tokenizer.pad_token}\n - Target: {target_tokenizer.pad_token}")
+        Warning_message(f"PAD token is different in the two tokenizers:\n - Source: {source_tokenizer.pad_token}\n - Target: {target_tokenizer.pad_token}\nIt will be updated in target")
     if target_tokenizer.eos_token != source_tokenizer.eos_token:
-        Warning_message(f"EOS token is different in the two tokenizers:\n - Source: {source_tokenizer.eos_token}\n - Target: {target_tokenizer.eos_token}")
+        Warning_message(f"EOS token is different in the two tokenizers:\n - Source: {source_tokenizer.eos_token}\n - Target: {target_tokenizer.eos_token}\nIt will be updated in target")
     if target_tokenizer.bos_token != source_tokenizer.bos_token:
-        Warning_message(f"BOS token is different in the two tokenizers:\n - Source: {source_tokenizer.bos_token}\n - Target: {target_tokenizer.bos_token}")
+        Warning_message(f"BOS token is different in the two tokenizers:\n - Source: {source_tokenizer.bos_token}\n - Target: {target_tokenizer.bos_token}\nIt will be updated in target")
     if target_tokenizer.model_max_length != source_tokenizer.model_max_length:
         Warning_message(f"Different model max length in the two tokenizers:\n - Source: {source_tokenizer.model_max_length}\n - Target: {target_tokenizer.model_max_length}")
     
@@ -230,11 +262,11 @@ def main(args):
     print("Loading big source model ...")
     # here we save the big source model to which we will be applying modifications to make it the big target model
     if args.debug:
-        big_source_weights_input = load_model_embeddings(args.big_source_model_directory, args.model_type)
+        big_source_weights_input, big_source_weights_output = load_model_embeddings(args.big_source_model_directory, args.model_type, return_unembeddings=args.untied_embeddings)
     else:
-        big_source_weights_input, big_model = load_model_embeddings(args.big_source_model_directory, args.model_type, return_model=True)
+        big_source_weights_input, big_source_weights_output, big_model = load_model_embeddings(args.big_source_model_directory, args.model_type, return_unembeddings=args.untied_embeddings, return_model=True)
     if args.save_embeddings:
-        save_embeddings(big_source_weights_input, args.big_source_model_directory, force=args.force_overwrite)
+        save_embeddings(big_source_weights_input, args.big_source_model_directory, unembedding_tensor=big_source_weights_output, force=args.force_overwrite)
     print("\tBig source model loaded!")
     if args.strategy == "transformation":
         print("Loading small source model ...")
@@ -267,6 +299,10 @@ def main(args):
     else:
         weights_mean_input = big_source_weights_input.mean(0)
         new_weights_input = big_source_weights_input.new_zeros(target_vocab_size, big_source_weights_input.size(1))  # size: (N+M) * h
+        if args.untied_embeddings:
+            weights_mean_output = big_source_weights_output.mean(0)
+            new_weights_output = big_source_weights_output.new_zeros(target_vocab_size, big_source_weights_output.size(1))  # size: (N+M) * hput
+
         source_vocabulary = fastai_source_tokenizer.tokenizer.get_vocab()
         target_vocabulary = fastai_target_tokenizer.tokenizer.get_vocab()
         
@@ -278,10 +314,14 @@ def main(args):
             idx_old = source_vocabulary.get(new_token, -1)
             if idx_old >= 0:  # if in old vocabulary
                 new_weights_input[idx_new] = big_source_weights_input[idx_old]
+                if args.untied_embeddings:
+                    new_weights_output[idx_new] = big_source_weights_output[idx_old]
                 new_ids_matching_tokens.append(idx_new)
             else:
                 if args.strategy == "matching":
                     new_weights_input[idx_new] = weights_mean_input
+                    if args.untied_embeddings:
+                        new_weights_output[idx_new] = weights_mean_output
                 new_ids_different_tokens.append(idx_new)
 
         print("Computing new embeddings ...")
@@ -332,11 +372,13 @@ def main(args):
         new_weights_input = new_weights_input.clone().detach()
         bias = torch.squeeze(bias)
         bias = bias.clone().detach()
+    # update embeddings
     new_wte = nn.Embedding(target_vocab_size, big_source_weights_input.size(1))  # wte: weight token embeddings
     new_wte.weight.data = new_weights_input
     big_model.set_input_embeddings(new_wte)
-    # update lm_head weights with wte weights
-    new_weights_output = new_weights_input.clone()  # in Falcon, output and input embeddings are the same matrix
+    # update unembeddings
+    if not args.untied_embeddings:
+        new_weights_output = new_weights_input.clone()  # in Falcon, output and input embeddings are the same matrix
     if args.model_type == "encoder":
         new_output_embeddings = nn.Linear(in_features=new_weights_output.size(1), out_features=new_weights_output.size(0), bias=True)
         new_output_embeddings.bias.data = bias
@@ -361,7 +403,8 @@ def main(args):
     big_model.save_pretrained(new_model_directory)
     target_tokenizer.save_pretrained(new_model_directory)
     # save embedding layer for debug
-    save_embeddings(new_weights_input, new_model_directory)
+    if args.save_embeddings:
+        save_embeddings(new_weights_input, new_model_directory, unembedding_tensor=new_weights_output)
     # show results
     print("Embeddings were adapted to the new tokenizer.")
     print("\nRESULTS")
