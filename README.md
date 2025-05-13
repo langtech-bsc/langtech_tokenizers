@@ -69,6 +69,7 @@ Choose the desired strategy `<STRATEGY>` (usually `matching` works good enough i
 the source model `<BIG_SOURCE_MODEL>`, the model type `<MODEL_TYPE>` (either "encoder" or "decoder"), the target tokenizer `<TARGET_TOKENIZER>`, 
 the output directory `<OUTPUT_DIRECTORY>` and the name `<NAME>` of the new model (this last one is optional, 
 and if not provided will be set to `new_<BIG_SOURCE_MODEL_NAME>`).
+NEW: now untied embeddings are supported (with decoder type and matching strategy), just use the argument `--untied_embeddings`.
 
 Then you can run: 
 ```bash
